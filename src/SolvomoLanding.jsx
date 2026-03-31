@@ -434,18 +434,45 @@ export default function SolvomoLanding() {
                 </div>
 
                 <div className="px-6 py-10 lg:px-8">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {[
-                      ['Who it is for', 'Growth leaders, performance teams, and operators managing serious spend across multiple channels.'],
-                      ['What it replaces', 'Disconnected reporting, shallow attribution views, and reactive budget reviews.'],
-                      ['What teams get', 'A structured operating layer for signal review, creative evaluation, and budget allocation.'],
-                      ['How to start', 'Begin with one workspace and one operating cadence, then expand into broader decision coverage.'],
-                    ].map(([title, body]) => (
-                      <div key={title} className="surface-soft rounded-[16px] p-5">
-                        <p className="text-sm font-semibold text-black">{title}</p>
-                        <p className="mt-3 text-sm leading-relaxed text-black/58">{body}</p>
+                  <div className="grid gap-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {[
+                        ['Who it is for', 'Growth leaders, performance teams, and operators managing serious spend across multiple channels.'],
+                        ['What it replaces', 'Disconnected reporting, shallow attribution views, and reactive budget reviews.'],
+                        ['What teams get', 'A structured operating layer for signal review, creative evaluation, and budget allocation.'],
+                        ['How to start', 'Begin with one workspace and one operating cadence, then expand into broader decision coverage.'],
+                      ].map(([title, body]) => (
+                        <div key={title} className="surface-soft rounded-[16px] p-5">
+                          <p className="text-sm font-semibold text-black">{title}</p>
+                          <p className="mt-3 text-sm leading-relaxed text-black/58">{body}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="surface-brand rounded-[18px] p-5 sm:p-6">
+                      <div className="max-w-xl">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Newsletter</p>
+                        <h3 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-black">Get product notes and operating insights.</h3>
+                        <p className="mt-3 text-sm leading-relaxed text-black/58">
+                          Subscribe for concise updates on performance systems, signal quality, and how serious growth teams make better decisions.
+                        </p>
                       </div>
-                    ))}
+
+                      <div className="surface-soft mt-6 overflow-hidden rounded-[16px] border border-black/10 bg-white">
+                        <iframe
+                          src="https://subscribe-forms.beehiiv.com/15e9e565-128a-48c1-9866-f96a47808e2a"
+                          className="beehiiv-embed block w-full max-w-full border-0 bg-transparent"
+                          data-test-id="beehiiv-embed"
+                          title="Subscribe to Solvomo updates"
+                          style={{
+                            width: '100%',
+                            height: '315px',
+                            margin: 0,
+                            boxShadow: 'none',
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -490,8 +517,13 @@ export default function SolvomoLanding() {
                   <a href={CALENDLY_BOOK_URL} target="_blank" rel="noopener noreferrer" className="footer-link block">
                     Book a demo
                   </a>
-                  <a href="#" className="footer-link block">
-                    Contact
+                  <a
+                    href="https://www.linkedin.com/company/solvomo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="footer-link block"
+                  >
+                    LinkedIn
                   </a>
                 </div>
               </div>
