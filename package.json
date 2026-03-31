@@ -13,6 +13,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@fontsource/inter": "^5.2.8",
     "@tailwindcss/vite": "^4.2.2",
     "@vitejs/plugin-react": "^6.0.1",
     "tailwindcss": "^4.2.2",
