@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 
 const CALENDLY_BOOK_URL = 'https://calendly.com/riya-aggarwal29/30min'
+const DEMO_APP_URL = 'https://app.solvomo.com'
 
 const nav = [
   { label: 'Platform', href: '#platform' },
@@ -98,9 +99,14 @@ export default function SolvomoLanding() {
             ))}
           </nav>
 
-          <a href={CALENDLY_BOOK_URL} target="_blank" rel="noopener noreferrer" className={`${primaryButtonClass} px-4 py-2.5`}>
-            Book a demo
-          </a>
+          <div className="flex items-center gap-3">
+            <a href={DEMO_APP_URL} target="_blank" rel="noopener noreferrer" className={`${primaryButtonClass} px-4 py-2.5`}>
+              Try the demo
+            </a>
+            <a href={CALENDLY_BOOK_URL} target="_blank" rel="noopener noreferrer" className={`${secondaryButtonClass} hidden px-4 py-2.5 sm:inline-flex`}>
+              Contact
+            </a>
+          </div>
         </div>
       </header>
 
@@ -121,15 +127,15 @@ export default function SolvomoLanding() {
 
                 <p className="mt-6 max-w-xl text-lg leading-relaxed text-black/62">
                   Solvomo unifies channel, creative, and signal intelligence into one system built for teams managing real budget, real
-                  pipeline, and real accountability.
+                  pipeline, and real accountability. Explore the live app to see the demo in action.
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <a href={CALENDLY_BOOK_URL} target="_blank" rel="noopener noreferrer" className={primaryButtonClass}>
-                    Book a demo
+                  <a href={DEMO_APP_URL} target="_blank" rel="noopener noreferrer" className={primaryButtonClass}>
+                    Try the live demo
                   </a>
-                  <a href="#platform" className={secondaryButtonClass}>
-                    View platform
+                  <a href={CALENDLY_BOOK_URL} target="_blank" rel="noopener noreferrer" className={secondaryButtonClass}>
+                    Get in touch
                   </a>
                 </div>
 
@@ -427,8 +433,8 @@ export default function SolvomoLanding() {
                     <a href={CALENDLY_BOOK_URL} target="_blank" rel="noopener noreferrer" className={primaryButtonClass}>
                       Talk to Solvomo
                     </a>
-                    <a href="#platform" className={secondaryButtonClass}>
-                      Review platform
+                    <a href={DEMO_APP_URL} target="_blank" rel="noopener noreferrer" className={secondaryButtonClass}>
+                      Try the live demo
                     </a>
                   </div>
                 </div>
@@ -514,8 +520,11 @@ export default function SolvomoLanding() {
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Company</p>
                 <div className="mt-4 space-y-2.5">
+                  <a href={DEMO_APP_URL} target="_blank" rel="noopener noreferrer" className="footer-link block">
+                    Try the demo
+                  </a>
                   <a href={CALENDLY_BOOK_URL} target="_blank" rel="noopener noreferrer" className="footer-link block">
-                    Book a demo
+                    Contact
                   </a>
                   <a
                     href="https://www.linkedin.com/company/solvomo"
