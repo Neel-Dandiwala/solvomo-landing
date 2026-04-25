@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 const CALENDLY_BOOK_URL = 'https://calendly.com/riya-aggarwal29/30min'
 const DEMO_APP_URL = 'https://app.solvomo.com'
@@ -539,9 +540,9 @@ export default function SolvomoLanding() {
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Legal</p>
                 <div className="mt-4 space-y-2.5">
-                  <a href="#" className="footer-link block">
+                  <Link to="/privacy" className="footer-link block">
                     Privacy
-                  </a>
+                  </Link>
                   <a href="#" className="footer-link block">
                     Terms
                   </a>
