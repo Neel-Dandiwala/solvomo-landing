@@ -1,0 +1,8 @@
+# Apache (e.g. some GoDaddy shared hosts): static privacy for crawlers; SPA fallback for other routes.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^privacy/?$ /privacy.html [R=301,L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>

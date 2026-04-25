@@ -33,6 +33,14 @@ export default function PrivacyPage() {
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:py-16">
         <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">Privacy Policy</h1>
         <p className="mt-2 text-sm text-black/55">Last updated: April 10, 2026</p>
+        <p className="mt-3 text-sm leading-relaxed text-black/55">
+          If a crawler or developer tool (for example Meta&apos;s Sharing Debugger) needs a URL that returns this policy as a normal HTML
+          file without client-side routing, use{' '}
+          <a href="/privacy.html" className="font-medium text-black underline decoration-black/25 underline-offset-2">
+            /privacy.html
+          </a>
+          .
+        </p>
 
         <p className="mt-8 text-sm leading-relaxed text-black/70">
           This Privacy Policy describes how Solvomo (&quot;we,&quot; &quot;us&quot;) collects, uses, and shares information when you visit our
