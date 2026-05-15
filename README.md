@@ -1,5 +1,20 @@
-# Vue 3 + Vite
+# Solvomo Landing
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+React + Vite landing site for Solvomo.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## Notion Blog Sync
+
+Add these values to `.env.local`:
+
+```bash
+NOTION_API_KEY=secret_...
+NOTION_BLOG_DATABASE_ID=...
+```
+
+Then sync the blog database:
+
+```bash
+npm run sync:blogs
+```
+
+The sync creates markdown files in `content/blogs`, downloads Notion images into `public/images/blogs`, and writes `src/content/blogs.generated.json` for the `/blog` and `/blog/:slug` routes.

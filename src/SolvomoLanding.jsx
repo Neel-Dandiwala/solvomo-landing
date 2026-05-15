@@ -8,6 +8,7 @@ const DEMO_APP_URL = 'https://app.solvomo.com'
 const nav = [
   { label: 'Platform', href: '#platform' },
   { label: 'Operating model', href: '#operating-model' },
+  { label: 'Blog', href: '/blog' },
   { label: 'Contact', href: '#contact' },
 ]
 
@@ -514,6 +515,9 @@ export default function SolvomoLanding() {
                   </a>
                   <a href="#operating-model" className="footer-link block">
                     Operating model
+                  </a>
+                  <a href="/blog" className="footer-link block">
+                    Blog
                   </a>
                 </div>
               </div>
