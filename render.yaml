@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: solvomo-landing
+    runtime: static
+    buildCommand: npm run render-build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NOTION_API_KEY
+        sync: false
+      - key: NOTION_BLOG_DATABASE_ID
+        value: 47a9fea1de7346ce94acf33a2cc02de4
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
