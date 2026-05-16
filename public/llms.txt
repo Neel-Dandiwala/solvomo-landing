@@ -1,0 +1,37 @@
+# Solvomo
+
+> Decision intelligence software for growth teams managing cross-channel performance, creative signal, signal quality, and budget allocation.
+
+## Crawl Policy
+
+- Public pages, blog posts, images, and metadata are crawlable.
+- Canonical site URL: https://solvomo.com
+- Sitemap: https://solvomo.com/sitemap.xml
+- Robots policy: https://solvomo.com/robots.txt
+
+## Primary URLs
+
+- [Home](https://solvomo.com/): Solvomo product overview for marketing decision intelligence.
+- [Blog](https://solvomo.com/blog): Operating notes on growth operations, AI advertising, signal quality, and decision intelligence.
+- [Privacy Policy](https://solvomo.com/privacy): Privacy policy for website visitors and product inquiries.
+
+## Blog Posts
+
+- [ChatGPT Ads Are Here: What It Means for the Future of Digital Advertising](https://solvomo.com/blog/chatgpt-ads-are-here-what-it-means-for-the-future-of-digital-advertising): OpenAI is now expanding advertising inside ChatGPT with tools for advertisers, including self-serve campaign management, CPC bidding, conversion tracking... (2026-05-15; ChatGPT ads; AI advertising; digital advertising; performance marketing; marketing analytics; ROI measurement; attribution; paid social; paid search; customer journey; conversational intent; OpenAI; CPC bidding; conversion tracking; customer acquisition cost; Google Ads; Meta Ads; TikTok Ads)
+
+## Preferred Entity Metadata
+
+- Organization: Solvomo
+- Category: marketing decision intelligence software
+- Topics: growth operations, performance marketing analytics, AI advertising, creative intelligence, signal governance, budget allocation
+- Contact: hello@solvomo.com
+
+## Blog Topic Map
+
+### ChatGPT Ads Are Here: What It Means for the Future of Digital Advertising
+
+- URL: https://solvomo.com/blog/chatgpt-ads-are-here-what-it-means-for-the-future-of-digital-advertising
+- Summary: ChatGPT Ads Could Redefine Digital Advertising ChatGPT ads are no longer just a future possibility. OpenAI is now expanding advertising inside ChatGPT with tools for advertisers, including self-serve campaign management, CPC bidding, conversion tracking, and partner access. This is a major moment for the future of...
+- Keywords: ChatGPT ads, AI advertising, digital advertising, performance marketing, marketing analytics, ROI measurement, attribution, paid social, paid search, customer journey, conversational intent, OpenAI, CPC bidding, conversion tracking, customer acquisition cost, Google Ads, Meta Ads, TikTok Ads
+- Headings: ChatGPT Ads Could Redefine Digital Advertising | Why ChatGPT Ads Are So Important | How ChatGPT Ads Change the Customer Journey | The Impact of ChatGPT Ads on Marketers | Why Measurement Will Become Even More Important | The World Is Ready for AI Advertising | What ChatGPT Ads Mean for the Future of Performance Marketing | The Solvomo Take
+

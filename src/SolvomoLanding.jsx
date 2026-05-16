@@ -1,9 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { HiddenCrawlerMetadata, absoluteUrl, organizationSchema, useSeo, websiteSchema } from './seo.js'
 
 const CALENDLY_BOOK_URL = 'https://calendly.com/riya-aggarwal29/30min'
 const DEMO_APP_URL = 'https://app.solvomo.com'
+const HOME_TITLE = 'Solvomo - Marketing decision intelligence'
+const HOME_DESCRIPTION =
+  'Solvomo is decision intelligence software for growth teams managing cross-channel performance, creative signal, and budget allocation in one operating layer.'
+const HOME_TOPICS = [
+  'marketing decision intelligence',
+  'growth operations',
+  'performance marketing analytics',
+  'creative intelligence',
+  'signal quality',
+  'budget allocation',
+]
 
 const nav = [
   { label: 'Platform', href: '#platform' },
@@ -67,6 +79,35 @@ function LogoMark({ src, alt, className = '', imageClassName = '' }) {
 export default function SolvomoLanding() {
   const [scrolled, setScrolled] = useState(false)
 
+  useSeo({
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    path: '/',
+    image: '/colour_logo.jpeg',
+    tags: HOME_TOPICS,
+    jsonLd: [
+      organizationSchema(),
+      websiteSchema(),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: HOME_TITLE,
+        description: HOME_DESCRIPTION,
+        url: absoluteUrl('/'),
+        isPartOf: websiteSchema(),
+        about: HOME_TOPICS.map((name) => ({ '@type': 'Thing', name })),
+        mainEntity: {
+          '@type': 'SoftwareApplication',
+          name: 'Solvomo',
+          applicationCategory: 'BusinessApplication',
+          operatingSystem: 'Web',
+          description: HOME_DESCRIPTION,
+          url: absoluteUrl('/'),
+        },
+      },
+    ],
+  })
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
     onScroll()
@@ -110,6 +151,11 @@ export default function SolvomoLanding() {
           </div>
         </div>
       </header>
+
+      <HiddenCrawlerMetadata title={HOME_TITLE} description={HOME_DESCRIPTION} canonical={absoluteUrl('/')} tags={HOME_TOPICS}>
+        <dt>Primary use cases</dt>
+        <dd>Cross-channel growth review, creative performance intelligence, signal governance, marketing budget decisions, executive reporting.</dd>
+      </HiddenCrawlerMetadata>
 
       <main>
         <section className="hero-backdrop border-b border-black/10">

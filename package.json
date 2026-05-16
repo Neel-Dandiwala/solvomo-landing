@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "sync:blogs": "node scripts/sync-notion-blogs.mjs",
+    "generate:seo": "node scripts/generate-seo-files.mjs",
     "render-build": "npm run sync:blogs && npm run build",
-    "build": "vite build",
+    "build": "npm run generate:seo && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

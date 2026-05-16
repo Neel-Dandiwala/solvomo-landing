@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import * as fs from 'node:fs'
 import Mime from 'mime-types'
 import * as path from 'node:path'
+import { buildBlogSeo } from '../src/seo-content.js'
 
 const cwd = process.cwd()
 dotenv.config({ path: path.join(cwd, '.env'), quiet: true })
@@ -72,6 +73,8 @@ async function syncBlogs() {
       cover,
       markdown: clean(markdown.replaceAll('http://', 'https://')),
     }
+
+    post.seo = buildBlogSeo(post)
 
     posts.push(post)
 

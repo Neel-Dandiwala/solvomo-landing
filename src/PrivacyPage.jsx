@@ -1,8 +1,11 @@
 'use client'
 
 import { Link } from 'react-router-dom'
+import { HiddenCrawlerMetadata, absoluteUrl, organizationSchema, useSeo } from './seo.js'
 
 const CONTACT_EMAIL = 'hello@solvomo.com'
+const PRIVACY_TITLE = 'Solvomo Privacy Policy'
+const PRIVACY_DESCRIPTION = 'Privacy policy for Solvomo website visitors, product inquiries, and online interactions.'
 
 function Section({ title, children }) {
   return (
@@ -14,6 +17,27 @@ function Section({ title, children }) {
 }
 
 export default function PrivacyPage() {
+  useSeo({
+    title: PRIVACY_TITLE,
+    description: PRIVACY_DESCRIPTION,
+    path: '/privacy',
+    jsonLd: [
+      organizationSchema(),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: PRIVACY_TITLE,
+        description: PRIVACY_DESCRIPTION,
+        url: absoluteUrl('/privacy'),
+        isPartOf: {
+          '@type': 'WebSite',
+          name: 'Solvomo',
+          url: absoluteUrl('/'),
+        },
+      },
+    ],
+  })
+
   return (
     <div className="page-haze min-h-svh bg-white text-black antialiased">
       <header className="border-b border-black/10 bg-white/92 backdrop-blur-md">
@@ -29,6 +53,7 @@ export default function PrivacyPage() {
           </Link>
         </div>
       </header>
+      <HiddenCrawlerMetadata title={PRIVACY_TITLE} description={PRIVACY_DESCRIPTION} canonical={absoluteUrl('/privacy')} tags={['privacy policy', 'Solvomo']} />
 
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:py-16">
         <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">Privacy Policy</h1>
