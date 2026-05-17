@@ -1,6 +1,7 @@
 import ReactMarkdown from 'react-markdown'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import remarkGfm from 'remark-gfm'
+import { COLOUR_LOGO, WHITE_LOGO } from './assets.js'
 import blogs from './content/blogs.generated.json'
 import { HiddenCrawlerMetadata, absoluteUrl, buildBlogSeo, renderableBlogMarkdown, useSeo, websiteSchema } from './seo.js'
 
@@ -13,7 +14,7 @@ function Header() {
       <div className="mx-auto flex h-[4.5rem] max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-3">
           <div className="logo-mark h-8 w-10 shrink-0">
-            <img src="/white_logo.jpeg" alt="Solvomo logo" className="h-full w-full" />
+            <img src={WHITE_LOGO} alt="Solvomo logo" className="h-full w-full" />
           </div>
           <span className="brand-wordmark text-[1.05rem]">Solvomo</span>
         </Link>
@@ -61,7 +62,7 @@ export function BlogIndex() {
     title: BLOG_INDEX_TITLE,
     description: BLOG_INDEX_DESCRIPTION,
     path: '/blog',
-    image: '/colour_logo.jpeg',
+    image: COLOUR_LOGO,
     tags: ['growth operations', 'decision intelligence', 'performance marketing', ...tags],
     jsonLd: [
       websiteSchema(),

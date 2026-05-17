@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from 'react-router-dom'
+import { WHITE_LOGO } from './assets.js'
 import { HiddenCrawlerMetadata, absoluteUrl, organizationSchema, useSeo } from './seo.js'
 
 const CONTACT_EMAIL = 'hello@solvomo.com'
@@ -44,7 +45,7 @@ export default function PrivacyPage() {
         <div className="mx-auto flex h-[4.5rem] max-w-3xl items-center justify-between gap-4 px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-3">
             <div className="logo-mark h-8 w-10 shrink-0">
-              <img src="/white_logo.jpeg" alt="Solvomo logo" className="h-full w-full" />
+              <img src={WHITE_LOGO} alt="Solvomo logo" className="h-full w-full" />
             </div>
             <span className="brand-wordmark text-[1.05rem]">Solvomo</span>
           </Link>

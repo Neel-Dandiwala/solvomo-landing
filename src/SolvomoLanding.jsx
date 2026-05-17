@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { COLOUR_LOGO, WHITE_LOGO } from './assets.js'
 import { HiddenCrawlerMetadata, absoluteUrl, organizationSchema, useSeo, websiteSchema } from './seo.js'
 
 const CALENDLY_BOOK_URL = 'https://calendly.com/riya-aggarwal29/30min'
@@ -83,7 +84,7 @@ export default function SolvomoLanding() {
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
     path: '/',
-    image: '/colour_logo.jpeg',
+    image: COLOUR_LOGO,
     tags: HOME_TOPICS,
     jsonLd: [
       organizationSchema(),
@@ -125,7 +126,7 @@ export default function SolvomoLanding() {
         <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
           <a href="#" className="flex items-center gap-3">
             <LogoMark
-              src="/white_logo.jpeg"
+              src={WHITE_LOGO}
               alt="Solvomo logo"
               className="logo-mark h-8 w-10 shrink-0"
               imageClassName="h-full w-full"
@@ -204,7 +205,7 @@ export default function SolvomoLanding() {
                 <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
                   <div className="flex items-center gap-3">
                     <LogoMark
-                      src="/white_logo.jpeg"
+                      src={WHITE_LOGO}
                       alt="Solvomo logo"
                       className="logo-mark h-7 w-9 shrink-0"
                       imageClassName="h-full w-full"
@@ -242,7 +243,7 @@ export default function SolvomoLanding() {
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/42">Brand asset</p>
                       <div className="surface-soft mt-3 overflow-hidden rounded-[14px] p-2">
                         <LogoMark
-                          src="/colour_logo.jpeg"
+                          src={COLOUR_LOGO}
                           alt="Solvomo brand graphic"
                           className="logo-mark-color h-24 w-full"
                           imageClassName="h-full w-full"
@@ -540,7 +541,7 @@ export default function SolvomoLanding() {
             <div>
               <a href="#" className="flex items-center gap-3">
                 <LogoMark
-                  src="/white_logo.jpeg"
+                  src={WHITE_LOGO}
                   alt="Solvomo logo"
                   className="logo-mark h-8 w-10 shrink-0"
                   imageClassName="h-full w-full"
