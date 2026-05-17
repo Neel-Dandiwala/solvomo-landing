@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { Client, LogLevel } from '@notionhq/client'
-import { NotionToMarkdown } from 'notion-to-md'
 import { createHash } from 'node:crypto'
 import dotenv from 'dotenv'
 import * as fs from 'node:fs'
@@ -20,7 +19,6 @@ const imageDir = path.join(cwd, 'public/images/blogs')
 const generatedJsonPath = path.join(cwd, 'src/content/blogs.generated.json')
 
 const notion = new Client({ auth: NOTION_KEY, logLevel: LogLevel.ERROR })
-const n2m = new NotionToMarkdown({ notionClient: notion })
 
 if (!NOTION_KEY) {
   console.error('NOTION_API_KEY is required. Add it to .env.local.')
@@ -61,10 +59,27 @@ async function syncBlogs() {
       continue
     }
 
-    const mdBlocks = await n2m.pageToMarkdown(row.id)
-    let markdown = mdToPlainString(n2m.toMarkdownString(mdBlocks))
-    markdown = await localizeMarkdownImages(markdown, title)
+    const pageId = normalizeNotionId(row.id)
+    const blockImages = await collectPageImageBlocks(pageId)
+    const blockImageMap = new Map(blockImages.map((img) => [normalizeNotionId(img.blockId), img.url]))
+
+    const rawMarkdown = await fetchPageMarkdown(pageId)
+    let markdown = await localizeMarkdownImages(rawMarkdown, title, blockImageMap)
+    markdown = await injectBlockImages(markdown, blockImages, title)
     markdown = fixMultilineNotionPipeTables(markdown)
+
+    const notionImageRefs = (rawMarkdown.match(/!\[[^\]]*\]\([^)]+\)/g) || []).length
+    if (notionImageRefs > 0 && !markdown.includes('/images/blogs/')) {
+      console.warn(
+        [
+          `Post "${title}" has ${notionImageRefs} image(s) in Notion but none were downloaded.`,
+          'The Notion API is not returning downloadable file URLs for this integration.',
+          'Fix: https://www.notion.so/my-integrations → Solvomo-Notion → Capabilities → enable all read/content permissions,',
+          're-share the Help Center database, then rerun npm run sync:blogs.',
+          'Workaround: use "Embed image" with an external URL instead of uploading files directly in Notion.',
+        ].join(' '),
+      )
+    }
 
     const cover = await saveImage(getCoverUrl(row), `${title}-cover`)
     const slug = getSlug(title)
@@ -76,7 +91,7 @@ async function syncBlogs() {
     const tags = getTags(row)
 
     const post = {
-      id: row.id,
+      id: pageId,
       slug,
       title,
       description,
@@ -163,19 +178,94 @@ function isPage(row) {
   return row?.object === 'page' && 'properties' in row
 }
 
-function mdToPlainString(md) {
-  if (md === null || md === undefined) return ''
-  if (typeof md === 'string') return md
-  if (Array.isArray(md)) return md.map((item) => mdToPlainString(item)).join('\n')
-  if (typeof md === 'object') {
-    const parent = typeof md.parent === 'string' ? md.parent : ''
-    const children = Array.isArray(md.children) ? md.children.map((child) => mdToPlainString(child)).join('\n') : ''
-    return [parent, children].filter(Boolean).join('\n')
-  }
-  return String(md)
+function normalizeNotionId(id) {
+  const hex = String(id || '')
+    .replace(/-/g, '')
+    .toLowerCase()
+  if (!/^[0-9a-f]{32}$/.test(hex)) return id
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
-async function localizeMarkdownImages(markdown, title) {
+async function fetchPageMarkdown(pageId) {
+  const response = await notion.pages.retrieveMarkdown({ page_id: pageId })
+  return response.markdown || ''
+}
+
+async function collectPageImageBlocks(pageId) {
+  const images = []
+
+  async function walk(blockId) {
+    let cursor
+    do {
+      const response = await notion.blocks.children.list({
+        block_id: blockId,
+        start_cursor: cursor,
+        page_size: 100,
+      })
+
+      for (const block of response.results) {
+        if (block.type === 'image') {
+          const url = getImageBlockUrl(block.image)
+          if (url) {
+            const caption = block.image?.caption?.map((item) => item.plain_text).join('').trim() || ''
+            images.push({ blockId: block.id, url, alt: caption })
+          }
+        }
+
+        if (block.has_children) {
+          await walk(block.id)
+        }
+      }
+
+      cursor = response.next_cursor
+    } while (cursor)
+  }
+
+  await walk(pageId)
+  return images
+}
+
+function getImageBlockUrl(image) {
+  if (!image?.type) return ''
+  if (image.type === 'external') return image.external?.url || ''
+  if (image.type === 'file') return image.file?.url || ''
+  return ''
+}
+
+function parseFileAttachmentUri(source) {
+  if (!source?.startsWith('file://')) return null
+  try {
+    const raw = decodeURIComponent(source.replace(/^file:\/\//, ''))
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+async function resolveImageUrl(source, blockImageMap) {
+  const trimmed = String(source || '').trim()
+  if (!trimmed) return ''
+  if (trimmed.startsWith('/images/blogs/')) return trimmed
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+
+  const attachment = parseFileAttachmentUri(trimmed)
+  const blockId = attachment?.permissionRecord?.id
+  if (!blockId) return ''
+
+  const normalizedBlockId = normalizeNotionId(blockId)
+  if (blockImageMap.has(normalizedBlockId)) {
+    return blockImageMap.get(normalizedBlockId)
+  }
+
+  try {
+    const block = await notion.blocks.retrieve({ block_id: normalizedBlockId })
+    return getImageBlockUrl(block.image)
+  } catch {
+    return ''
+  }
+}
+
+async function localizeMarkdownImages(markdown, title, blockImageMap) {
   const imageRegex = /!\[([^\]]*)\]\(([^)]*)\)/g
   let updated = markdown
   let imageIndex = 0
@@ -187,15 +277,53 @@ async function localizeMarkdownImages(markdown, title) {
 
     if (source.startsWith('/images/blogs/')) continue
 
+    const downloadUrl = await resolveImageUrl(source, blockImageMap)
     let replacement = ''
-    if (source) {
-      replacement = await saveImage(source, `${title}-${imageIndex++}`)
+
+    if (downloadUrl) {
+      replacement = await saveImage(downloadUrl, `${title}-${imageIndex++}`)
+    } else if (source.startsWith('file://')) {
+      console.warn(
+        `Could not resolve Notion file attachment in "${title}". Check integration file-read capabilities at https://www.notion.so/my-integrations`,
+      )
+    } else if (source) {
+      console.warn(`Could not download image for "${title}": ${source.slice(0, 120)}`)
     }
 
     updated = updated.replace(token, replacement ? `![${alt}](${replacement})` : '')
   }
 
   return updated.replace(/\n{3,}/g, '\n\n').trim()
+}
+
+async function injectBlockImages(markdown, blockImages, title) {
+  if (!blockImages.length) return markdown
+
+  const lines = markdown.split('\n')
+  const placeholderRegex = /^!\[\]\(\s*\)$|^!\[[^\]]*\]\(\s*\)$|^image\.(png|jpe?g|gif|webp|svg)$/i
+  let imageIndex = 0
+  const out = []
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    const needsImage =
+      placeholderRegex.test(trimmed) ||
+      (trimmed.startsWith('![') && trimmed.includes('](file://'))
+
+    if (needsImage && imageIndex < blockImages.length) {
+      const localPath = await saveImage(blockImages[imageIndex].url, `${title}-block-${imageIndex}`)
+      imageIndex += 1
+      if (localPath) {
+        const alt = blockImages[imageIndex - 1]?.alt || ''
+        out.push(`![${alt}](${localPath})`)
+        continue
+      }
+    }
+
+    out.push(line)
+  }
+
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
 async function saveImage(url, title) {
