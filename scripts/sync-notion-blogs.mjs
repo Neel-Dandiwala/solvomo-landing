@@ -38,9 +38,13 @@ async function syncBlogs() {
   const rows = await getTable(BLOG_DATABASE_ID)
 
   fs.rmSync(contentDir, { recursive: true, force: true })
+  fs.rmSync(imageDir, { recursive: true, force: true })
   fs.mkdirSync(contentDir, { recursive: true })
   fs.mkdirSync(imageDir, { recursive: true })
+  fs.writeFileSync(path.join(imageDir, '.gitkeep'), '')
   fs.mkdirSync(path.dirname(generatedJsonPath), { recursive: true })
+
+  console.log('Cleared cached blog markdown and images')
 
   const posts = []
 
@@ -52,6 +56,11 @@ async function syncBlogs() {
     const title = getTitle(row)
     if (!title) continue
 
+    if (isHidden(row)) {
+      console.log(`Skipped hidden post: ${title}`)
+      continue
+    }
+
     const mdBlocks = await n2m.pageToMarkdown(row.id)
     let markdown = mdToPlainString(n2m.toMarkdownString(mdBlocks))
     markdown = await localizeMarkdownImages(markdown, title)
@@ -60,6 +69,9 @@ async function syncBlogs() {
     const cover = await saveImage(getCoverUrl(row), `${title}-cover`)
     const slug = getSlug(title)
     const date = getDate(row)
+    const updatedAt = getUpdatedAt(row)
+    const author = getAuthor(row)
+    const updatedBy = getUpdatedBy(row)
     const description = getDescription(row, markdown)
     const tags = getTags(row)
 
@@ -69,6 +81,9 @@ async function syncBlogs() {
       title,
       description,
       date,
+      updatedAt,
+      author,
+      updatedBy,
       tags,
       cover,
       markdown: clean(markdown.replaceAll('http://', 'https://')),
@@ -80,7 +95,7 @@ async function syncBlogs() {
 
     fs.writeFileSync(
       path.join(contentDir, `${slug}.md`),
-      `---\ntitle: ${yamlString(title)}\ndescription: ${yamlString(description)}\ndate: ${date}\nslug: ${slug}\ntags: ${JSON.stringify(tags)}\ncover: ${cover || ''}\n---\n\n${post.markdown}`,
+      `---\ntitle: ${yamlString(title)}\ndescription: ${yamlString(description)}\ndate: ${date}\nupdatedAt: ${updatedAt}\nauthor: ${yamlString(author)}\nupdatedBy: ${yamlString(updatedBy)}\nslug: ${slug}\ntags: ${JSON.stringify(tags)}\ncover: ${cover || ''}\n---\n\n${post.markdown}`,
     )
 
     console.log(`Synced ${title}`)
@@ -219,16 +234,60 @@ function getDescription(page, markdown) {
 }
 
 function getDate(page) {
-  const property = pickProperty(page, ['Published Date', 'Publish Date', 'Date', 'published_date'])
-  if (property?.type === 'date' && property.date?.start) return property.date.start
-  return page.created_time || new Date().toISOString()
+  return (
+    getPropertyDate(page, ['Created at', 'Published Date', 'Publish Date', 'Date', 'published_date']) ||
+    page.created_time ||
+    new Date().toISOString()
+  )
+}
+
+function getUpdatedAt(page) {
+  return getPropertyDate(page, ['Updated at', 'Modified at']) || getDate(page)
+}
+
+function getAuthor(page) {
+  return richTextToPlain(pickProperty(page, ['Author'])) || 'Solvomo'
+}
+
+function getUpdatedBy(page) {
+  return richTextToPlain(pickProperty(page, ['Updated by']))
 }
 
 function getTags(page) {
   const property = pickProperty(page, ['Tags', 'Tag', 'Category', 'Categories'])
   if (property?.type === 'multi_select') return property.multi_select.map((tag) => tag.name)
   if (property?.type === 'select' && property.select?.name) return [property.select.name]
-  return []
+
+  const text = richTextToPlain(property)
+  if (!text) return []
+
+  return text
+    .split(/[,;|]/)
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+}
+
+function getPropertyDate(page, names) {
+  const property = pickProperty(page, names)
+  if (property?.type === 'date' && property.date?.start) return property.date.start
+  return parseRichTextDate(richTextToPlain(property))
+}
+
+function parseRichTextDate(value) {
+  const text = String(value || '').trim()
+  if (!text) return ''
+  const parsed = Date.parse(text)
+  if (!Number.isFinite(parsed)) return ''
+  return new Date(parsed).toISOString()
+}
+
+function isHidden(page) {
+  const property = pickProperty(page, ['Hide', 'Hidden'])
+  if (property?.type === 'checkbox') return property.checkbox === true
+  if (property?.type === 'select' && property.select?.name) {
+    return ['true', 'yes', 'hidden'].includes(property.select.name.toLowerCase())
+  }
+  return false
 }
 
 function getCoverUrl(page) {

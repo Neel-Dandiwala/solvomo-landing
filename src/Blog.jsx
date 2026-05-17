@@ -36,7 +36,9 @@ function formatDate(date) {
 }
 
 function getPosts() {
-  return [...blogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  return [...blogs]
+    .filter((post) => !post.hidden)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
 
 export function BlogIndex() {
@@ -145,7 +147,7 @@ export function BlogPost() {
     type: post ? 'article' : 'website',
     image: postImage,
     publishedTime: post?.date,
-    modifiedTime: post?.date,
+    modifiedTime: post?.updatedAt || post?.date,
     tags: seo?.keywords || post?.tags || [],
     jsonLd: post
       ? [
@@ -201,9 +203,12 @@ export function BlogPost() {
             Back to blog
           </Link>
           <div className="mt-8">
-            <time dateTime={post.date} className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
-              {formatDate(post.date)}
-            </time>
+            <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">
+              <time dateTime={post.date}>{formatDate(post.date)}</time>
+              {post.updatedAt && post.updatedAt !== post.date ? (
+                <span>Updated {formatDate(post.updatedAt)}</span>
+              ) : null}
+            </div>
             <h1 className="mt-4 text-4xl font-semibold tracking-[-0.045em] text-black sm:text-5xl">{post.title}</h1>
             {postDescription ? <p className="mt-5 text-base leading-relaxed text-black/60">{postDescription}</p> : null}
             {post.tags?.length ? (
