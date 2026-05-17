@@ -67,6 +67,7 @@ const TOPIC_PHRASES = [
 
 export function stripMarkdown(markdown = '') {
   return markdown
+    .replace(/^---\s*$/gm, ' ')
     .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/```[\s\S]*?```/g, ' ')
@@ -94,7 +95,7 @@ export function extractHeadings(markdown = '') {
 }
 
 export function metaDescription(markdown = '', fallback = '') {
-  const bodyWithoutHeadings = markdown.replace(/^#{1,6}\s+.+$/gm, ' ')
+  const bodyWithoutHeadings = removeLeadingArticleChrome(markdown).replace(/^#{1,6}\s+.+$/gm, ' ')
   const text = stripMarkdown(bodyWithoutHeadings)
   const candidate =
     text
@@ -127,7 +128,7 @@ export function extractKeywords({ title = '', markdown = '', tags = [] } = {}) {
 }
 
 export function buildBlogSeo(post) {
-  const markdown = post?.markdown || ''
+  const markdown = renderableBlogMarkdown(post?.markdown || '', post?.title || '')
   const keywords = extractKeywords({ title: post?.title, markdown, tags: post?.tags || [] })
   const image = post?.cover || extractImage(markdown)
   const description = metaDescription(markdown, post?.description)
@@ -144,6 +145,10 @@ export function buildBlogSeo(post) {
     wordCount: text.split(/\s+/).filter(Boolean).length,
     readingMinutes: readingTime(markdown),
   }
+}
+
+export function renderableBlogMarkdown(markdown = '', title = '') {
+  return removeLeadingArticleChrome(markdown, title).trim()
 }
 
 function uniqueList(items) {
@@ -165,4 +170,67 @@ function truncateAtWord(value, limit) {
   const truncated = clean.slice(0, limit)
   const lastSpace = truncated.lastIndexOf(' ')
   return `${truncated.slice(0, lastSpace > 0 ? lastSpace : limit).replace(/[.,;:!?-]+$/, '')}...`
+}
+
+function removeLeadingArticleChrome(markdown = '', title = '') {
+  const lines = String(markdown || '').split('\n')
+  const output = [...lines]
+
+  while (output.length && output[0].trim() === '') output.shift()
+  if (output[0]?.trim() === '---') output.shift()
+  while (output.length && output[0].trim() === '') output.shift()
+
+  if (isHeading(output[0]) && shouldDropLeadingHeading(output[0], title)) {
+    output.shift()
+  }
+
+  while (output.length && output[0].trim() === '') output.shift()
+
+  while (output.length && isArticleChromeLine(output[0])) {
+    output.shift()
+    while (output.length && output[0].trim() === '') output.shift()
+  }
+
+  return output.join('\n')
+}
+
+function isHeading(line = '') {
+  return /^#{1,3}\s+\S/.test(line.trim())
+}
+
+function shouldDropLeadingHeading(line = '', title = '') {
+  const heading = line.replace(/^#{1,6}\s+/, '').trim()
+  if (!title) return true
+
+  const normalizedHeading = normalizeTitle(heading)
+  const normalizedTitle = normalizeTitle(title)
+
+  return normalizedHeading.includes(normalizedTitle) || normalizedTitle.includes(normalizedHeading) || similarity(normalizedHeading, normalizedTitle) > 0.55
+}
+
+function isArticleChromeLine(line = '') {
+  const value = line.trim()
+  if (!value) return false
+  if (value === '---') return true
+  if (/^summary\s*:/i.test(value)) return true
+  if (/\b\d+\s*min\s*read\b/i.test(value)) return true
+  if (/[·|]\s*\d{4}\b/.test(value)) return true
+  if (/^[-–—]+\s*[A-Z][A-Za-z\s]+[·|]\s*\d{4}/.test(value)) return true
+  return false
+}
+
+function normalizeTitle(value = '') {
+  return value
+    .toLowerCase()
+    .replace(/\b(19|20)\d{2}\b/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function similarity(a, b) {
+  const aWords = new Set(a.split(/\s+/).filter(Boolean))
+  const bWords = new Set(b.split(/\s+/).filter(Boolean))
+  if (!aWords.size || !bWords.size) return 0
+  const overlap = [...aWords].filter((word) => bWords.has(word)).length
+  return overlap / Math.max(aWords.size, bWords.size)
 }

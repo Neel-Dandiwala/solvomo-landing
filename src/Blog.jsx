@@ -2,7 +2,7 @@ import ReactMarkdown from 'react-markdown'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import remarkGfm from 'remark-gfm'
 import blogs from './content/blogs.generated.json'
-import { HiddenCrawlerMetadata, absoluteUrl, buildBlogSeo, useSeo, websiteSchema } from './seo.js'
+import { HiddenCrawlerMetadata, absoluteUrl, buildBlogSeo, renderableBlogMarkdown, useSeo, websiteSchema } from './seo.js'
 
 const BLOG_INDEX_TITLE = 'Solvomo Blog - Growth operations and decision intelligence'
 const BLOG_INDEX_DESCRIPTION = 'Operating notes from Solvomo on growth operations, signal quality, AI advertising, and decision intelligence for performance teams.'
@@ -136,6 +136,7 @@ export function BlogPost() {
   const postPath = post ? `/blog/${post.slug}` : '/blog'
   const postDescription = seo?.metaDescription || post?.description || BLOG_INDEX_DESCRIPTION
   const postReadingTime = seo?.readingMinutes || 0
+  const markdownBody = post ? renderableBlogMarkdown(post.markdown, post.title) : ''
 
   useSeo({
     title: seo?.seoTitle || post?.title || BLOG_INDEX_TITLE,
@@ -226,7 +227,7 @@ export function BlogPost() {
         ) : null}
 
         <article className="blog-markdown mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:py-16">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.markdown}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdownBody}</ReactMarkdown>
         </article>
       </main>
     </div>

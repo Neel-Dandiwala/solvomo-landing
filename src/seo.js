@@ -1,5 +1,5 @@
 import { createElement, useEffect } from 'react'
-export { buildBlogSeo, extractHeadings, extractImage, extractKeywords, metaDescription, readingTime, stripMarkdown } from './seo-content.js'
+export { buildBlogSeo, extractHeadings, extractImage, extractKeywords, metaDescription, readingTime, renderableBlogMarkdown, stripMarkdown } from './seo-content.js'
 
 export const SITE_NAME = 'Solvomo'
 export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://solvomo.com').replace(/\/$/, '')
@@ -48,7 +48,19 @@ export function HiddenCrawlerMetadata({ title, description, canonical, type = 'W
 
   return createElement(
     'section',
-    { className: 'crawler-metadata', 'aria-label': 'Crawler metadata' },
+    {
+      className: 'crawler-metadata',
+      'aria-label': 'Crawler metadata',
+      style: {
+        position: 'absolute',
+        width: '1px',
+        height: '1px',
+        overflow: 'hidden',
+        clip: 'rect(0 0 0 0)',
+        clipPath: 'inset(50%)',
+        whiteSpace: 'nowrap',
+      },
+    },
     createElement(
       'dl',
       null,
