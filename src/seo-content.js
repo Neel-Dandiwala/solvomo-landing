@@ -129,8 +129,9 @@ export function parseBlogArticleMarkdown(markdown = '', title = '', tags = []) {
       continue
     }
 
-    if (/^summary\s*:/i.test(trimmed)) {
-      meta.summary = trimmed.replace(/^summary\s*:\s*/i, '').trim()
+    const plainLine = stripInlineMarkdown(trimmed)
+    if (/^summary\s*:/i.test(plainLine)) {
+      meta.summary = plainLine.replace(/^summary\s*:\s*/i, '').trim()
       i++
       continue
     }
@@ -222,7 +223,7 @@ export function buildBlogSeo(post) {
   const description = metaDescription(post?.markdown || '', post?.description)
   const headings = extractHeadings(markdown)
   const text = stripMarkdown(markdown)
-  const readMinutes = parsed.meta.readMinutes || readingTime(markdown)
+  const readMinutes = parsed.meta.readMinutes || 0
 
   return {
     seoTitle: post?.title || '',
@@ -263,20 +264,33 @@ function parseMetaLine(line) {
   return split.meta
 }
 
-function splitMetaPrefix(line) {
-  const cleaned = String(line || '')
-    .replace(/^---+\s*/, '')
+function stripInlineMarkdown(line = '') {
+  return String(line || '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
     .trim()
-  const match = cleaned.match(/^(.+?)\s*[·|]\s*((?:19|20)\d{2})(?:\s*[·|]\s*(\d+)\s*min\s*read)?(?:\s*(.*))?$/i)
+}
+
+function splitMetaPrefix(line) {
+  const cleaned = stripInlineMarkdown(
+    String(line || '')
+      .replace(/^---+\s*/, '')
+      .trim(),
+  )
+
+  // Notion blog chrome: [category] · year | N min read
+  const match = cleaned.match(/^(.+?)\s*·\s*((?:19|20)\d{2})\s*\|\s*(\d+)\s*min\s*read\s*$/i)
   if (!match) return { meta: null, remainder: cleaned }
 
   return {
     meta: {
       category: match[1].trim(),
       year: match[2],
-      readMinutes: match[3] ? Number(match[3]) : 0,
+      readMinutes: Number(match[3]),
     },
-    remainder: (match[4] || '').trim(),
+    remainder: '',
   }
 }
 

@@ -92,8 +92,6 @@ Solvomo predicts ad ROI before you spend. Input your campaign, audience, and cre
 
 ---
 
-image.png
-
 ## The Solvomo Take
 
 At Solvomo, we see ChatGPT ads as part of a much bigger shift. Marketing is moving away from isolated channel dashboards toward ROI intelligence across every platform in one place.

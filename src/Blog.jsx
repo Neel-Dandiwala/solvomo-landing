@@ -35,14 +35,13 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
-function formatArticleMetaLine(meta = {}, readingMinutes = 0) {
+function formatArticleMetaLine(meta = {}) {
   const parts = []
   if (meta.category && meta.year) parts.push(`${meta.category} · ${meta.year}`)
   else if (meta.category) parts.push(meta.category)
   else if (meta.year) parts.push(meta.year)
 
-  const minutes = meta.readMinutes || readingMinutes
-  if (minutes) parts.push(`${minutes} min read`)
+  if (meta.readMinutes) parts.push(`${meta.readMinutes} min read`)
 
   return parts.join(' | ')
 }
@@ -223,8 +222,8 @@ export function BlogPost() {
               ) : null}
             </div>
             <h1 className="mt-4 text-4xl font-semibold tracking-[-0.045em] text-black sm:text-5xl">{post.title}</h1>
-            {formatArticleMetaLine(articleMeta, postReadingTime) ? (
-              <p className="mt-3 text-sm font-medium text-black/50">{formatArticleMetaLine(articleMeta, postReadingTime)}</p>
+            {formatArticleMetaLine(articleMeta) ? (
+              <p className="mt-3 text-sm font-medium text-black/50">{formatArticleMetaLine(articleMeta)}</p>
             ) : null}
             {post.tags?.length ? (
               <div className="mt-5 flex flex-wrap gap-2">
