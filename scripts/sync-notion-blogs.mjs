@@ -37,15 +37,14 @@ async function syncBlogs() {
   const rows = await getTable(BLOG_DATABASE_ID)
 
   fs.rmSync(contentDir, { recursive: true, force: true })
-  fs.rmSync(imageDir, { recursive: true, force: true })
   fs.mkdirSync(contentDir, { recursive: true })
   fs.mkdirSync(imageDir, { recursive: true })
-  fs.writeFileSync(path.join(imageDir, '.gitkeep'), '')
   fs.mkdirSync(path.dirname(generatedJsonPath), { recursive: true })
 
-  console.log('Cleared cached blog markdown and images')
+  console.log('Cleared cached blog markdown (keeping existing downloaded images)')
 
   const posts = []
+  const usedImageFiles = new Set()
 
   console.log(`Found ${rows.length} Notion blog rows`)
 
@@ -65,8 +64,8 @@ async function syncBlogs() {
     const blockImageMap = new Map(blockImages.map((img) => [normalizeNotionId(img.blockId), img.url]))
 
     const rawMarkdown = await fetchPageMarkdown(pageId)
-    let markdown = await localizeMarkdownImages(rawMarkdown, title, blockImageMap)
-    markdown = await injectBlockImages(markdown, blockImages, title)
+    let markdown = await localizeMarkdownImages(rawMarkdown, title, blockImageMap, usedImageFiles)
+    markdown = await injectBlockImages(markdown, blockImages, title, usedImageFiles)
     markdown = prepareNotionMarkdownForDisplay(markdown)
 
     const notionImageRefs = (rawMarkdown.match(/!\[[^\]]*\]\([^)]+\)/g) || []).length
@@ -82,7 +81,7 @@ async function syncBlogs() {
       )
     }
 
-    const cover = await saveImage(getCoverUrl(row), `${title}-cover`)
+    const cover = await saveImage(getCoverUrl(row), `${title}-cover`, usedImageFiles)
     const slug = getSlug(title)
     const date = getDate(row)
     const updatedAt = getUpdatedAt(row)
@@ -125,7 +124,27 @@ async function syncBlogs() {
 
   posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   fs.writeFileSync(generatedJsonPath, `${JSON.stringify(posts, null, 2)}\n`)
+  pruneUnusedImages(usedImageFiles)
   console.log(`Wrote ${posts.length} posts to ${generatedJsonPath}`)
+}
+
+function pruneUnusedImages(usedImageFiles) {
+  if (!fs.existsSync(imageDir)) return
+
+  for (const file of fs.readdirSync(imageDir)) {
+    if (!file.endsWith('.png') && !file.endsWith('.jpg') && !file.endsWith('.gif') && !file.endsWith('.webp')) {
+      continue
+    }
+    if (!usedImageFiles.has(file)) {
+      fs.unlinkSync(path.join(imageDir, file))
+      console.log(`Removed unused image ${file}`)
+    }
+  }
+}
+
+function trackImageFile(imagePath, usedImageFiles) {
+  if (!imagePath?.startsWith('/images/blogs/')) return
+  usedImageFiles.add(path.basename(imagePath))
 }
 
 async function getTable(databaseId) {
@@ -271,7 +290,7 @@ async function resolveImageUrl(source, blockImageMap) {
   }
 }
 
-async function localizeMarkdownImages(markdown, title, blockImageMap) {
+async function localizeMarkdownImages(markdown, title, blockImageMap, usedImageFiles) {
   const imageRegex = /!\[([^\]]*)\]\(([^)]*)\)/g
   let updated = markdown
   let imageIndex = 0
@@ -287,7 +306,7 @@ async function localizeMarkdownImages(markdown, title, blockImageMap) {
     let replacement = ''
 
     if (downloadUrl) {
-      replacement = await saveImage(downloadUrl, `${title}-${imageIndex++}`)
+      replacement = await saveImage(downloadUrl, `${title}-${imageIndex++}`, usedImageFiles)
     } else if (source.startsWith('file://')) {
       console.warn(
         `Could not resolve Notion file attachment in "${title}". Check integration file-read capabilities at https://www.notion.so/my-integrations`,
@@ -302,7 +321,7 @@ async function localizeMarkdownImages(markdown, title, blockImageMap) {
   return updated.replace(/\n{3,}/g, '\n\n').trim()
 }
 
-async function injectBlockImages(markdown, blockImages, title) {
+async function injectBlockImages(markdown, blockImages, title, usedImageFiles) {
   if (!blockImages.length) return markdown
 
   const lines = markdown.split('\n')
@@ -317,7 +336,7 @@ async function injectBlockImages(markdown, blockImages, title) {
       (trimmed.startsWith('![') && trimmed.includes('](file://'))
 
     if (needsImage && imageIndex < blockImages.length) {
-      const localPath = await saveImage(blockImages[imageIndex].url, `${title}-block-${imageIndex}`)
+      const localPath = await saveImage(blockImages[imageIndex].url, `${title}-block-${imageIndex}`, usedImageFiles)
       imageIndex += 1
       if (localPath) {
         const alt = blockImages[imageIndex - 1]?.alt || ''
@@ -332,7 +351,7 @@ async function injectBlockImages(markdown, blockImages, title) {
   return out.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
-async function saveImage(url, title) {
+async function saveImage(url, title, usedImageFiles = new Set()) {
   if (!url) return ''
 
   try {
@@ -349,7 +368,9 @@ async function saveImage(url, title) {
     const outputPath = path.join(imageDir, filename)
 
     fs.writeFileSync(outputPath, image.data)
-    return `/images/blogs/${filename}`
+    const publicPath = `/images/blogs/${filename}`
+    trackImageFile(publicPath, usedImageFiles)
+    return publicPath
   } catch (error) {
     console.error(`Could not save image ${url}`, error.message)
     return ''
