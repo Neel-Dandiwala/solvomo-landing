@@ -1,5 +1,15 @@
 import { createElement, useEffect } from 'react'
-export { buildBlogSeo, extractHeadings, extractImage, extractKeywords, metaDescription, readingTime, renderableBlogMarkdown, stripMarkdown } from './seo-content.js'
+export {
+  buildBlogSeo,
+  extractHeadings,
+  extractImage,
+  extractKeywords,
+  metaDescription,
+  parseBlogArticleMarkdown,
+  readingTime,
+  renderableBlogMarkdown,
+  stripMarkdown,
+} from './seo-content.js'
 
 export const SITE_NAME = 'Solvomo'
 export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://solvomo.com').replace(/\/$/, '')

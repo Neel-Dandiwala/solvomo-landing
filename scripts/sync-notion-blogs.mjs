@@ -176,20 +176,26 @@ function mdToPlainString(md) {
 }
 
 async function localizeMarkdownImages(markdown, title) {
-  const imageRegex = /!\[([^\]]*)\]\((?!\/images\/blogs\/)([^\s)]+)(?:\s+"([^"]+)")?\)/gm
+  const imageRegex = /!\[([^\]]*)\]\(([^)]*)\)/g
   let updated = markdown
-  let match
   let imageIndex = 0
 
-  while ((match = imageRegex.exec(markdown)) !== null) {
-    const source = match[2]
-    const replacement = await saveImage(source, `${title}-${imageIndex++}`)
-    if (replacement) {
-      updated = updated.replace(match[0], `![${match[1] || ''}](${replacement})`)
+  for (const match of markdown.matchAll(imageRegex)) {
+    const alt = match[1] || ''
+    const source = (match[2] || '').trim()
+    const token = match[0]
+
+    if (source.startsWith('/images/blogs/')) continue
+
+    let replacement = ''
+    if (source) {
+      replacement = await saveImage(source, `${title}-${imageIndex++}`)
     }
+
+    updated = updated.replace(token, replacement ? `![${alt}](${replacement})` : '')
   }
 
-  return updated
+  return updated.replace(/\n{3,}/g, '\n\n').trim()
 }
 
 async function saveImage(url, title) {

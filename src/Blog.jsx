@@ -35,6 +35,18 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
+function formatArticleMetaLine(meta = {}, readingMinutes = 0) {
+  const parts = []
+  if (meta.category && meta.year) parts.push(`${meta.category} · ${meta.year}`)
+  else if (meta.category) parts.push(meta.category)
+  else if (meta.year) parts.push(meta.year)
+
+  const minutes = meta.readMinutes || readingMinutes
+  if (minutes) parts.push(`${minutes} min read`)
+
+  return parts.join(' | ')
+}
+
 function getPosts() {
   return [...blogs]
     .filter((post) => !post.hidden)
@@ -138,7 +150,8 @@ export function BlogPost() {
   const postPath = post ? `/blog/${post.slug}` : '/blog'
   const postDescription = seo?.metaDescription || post?.description || BLOG_INDEX_DESCRIPTION
   const postReadingTime = seo?.readingMinutes || 0
-  const markdownBody = post ? renderableBlogMarkdown(post.markdown, post.title) : ''
+  const articleMeta = seo?.articleMeta || {}
+  const markdownBody = post ? renderableBlogMarkdown(post.markdown, post.title, post.tags) : ''
 
   useSeo({
     title: seo?.seoTitle || post?.title || BLOG_INDEX_TITLE,
@@ -210,7 +223,9 @@ export function BlogPost() {
               ) : null}
             </div>
             <h1 className="mt-4 text-4xl font-semibold tracking-[-0.045em] text-black sm:text-5xl">{post.title}</h1>
-            {postDescription ? <p className="mt-5 text-base leading-relaxed text-black/60">{postDescription}</p> : null}
+            {formatArticleMetaLine(articleMeta, postReadingTime) ? (
+              <p className="mt-3 text-sm font-medium text-black/50">{formatArticleMetaLine(articleMeta, postReadingTime)}</p>
+            ) : null}
             {post.tags?.length ? (
               <div className="mt-5 flex flex-wrap gap-2">
                 {post.tags.map((tag) => (
@@ -219,6 +234,9 @@ export function BlogPost() {
                   </span>
                 ))}
               </div>
+            ) : null}
+            {articleMeta.summary ? (
+              <p className="mt-5 text-base leading-relaxed text-black/60">{articleMeta.summary}</p>
             ) : null}
           </div>
         </article>
