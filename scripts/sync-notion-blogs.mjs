@@ -5,7 +5,8 @@ import dotenv from 'dotenv'
 import * as fs from 'node:fs'
 import Mime from 'mime-types'
 import * as path from 'node:path'
-import { buildBlogSeo } from '../src/seo-content.js'
+import { cleanNotionMarkdown, prepareNotionMarkdownForDisplay } from '../src/notion-markdown-tables.js'
+import { buildBlogSeo, parseBlogArticleMarkdown } from '../src/seo-content.js'
 
 const cwd = process.cwd()
 dotenv.config({ path: path.join(cwd, '.env'), quiet: true })
@@ -66,7 +67,7 @@ async function syncBlogs() {
     const rawMarkdown = await fetchPageMarkdown(pageId)
     let markdown = await localizeMarkdownImages(rawMarkdown, title, blockImageMap)
     markdown = await injectBlockImages(markdown, blockImages, title)
-    markdown = fixMultilineNotionPipeTables(markdown)
+    markdown = prepareNotionMarkdownForDisplay(markdown)
 
     const notionImageRefs = (rawMarkdown.match(/!\[[^\]]*\]\([^)]+\)/g) || []).length
     if (notionImageRefs > 0 && !markdown.includes('/images/blogs/')) {
@@ -87,8 +88,12 @@ async function syncBlogs() {
     const updatedAt = getUpdatedAt(row)
     const author = getAuthor(row)
     const updatedBy = getUpdatedBy(row)
-    const description = getDescription(row, markdown)
     const tags = getTags(row)
+    const articleMeta = getArticleMeta(row, date)
+    const rawCleaned = cleanNotionMarkdown(markdown.replaceAll('http://', 'https://'))
+    const parsed = parseBlogArticleMarkdown(rawCleaned, title, tags)
+    const mergedMeta = mergeArticleMeta(articleMeta, parsed.meta)
+    const description = mergedMeta.summary || getSummary(row) || extractDescription(parsed.markdown)
 
     const post = {
       id: pageId,
@@ -101,7 +106,8 @@ async function syncBlogs() {
       updatedBy,
       tags,
       cover,
-      markdown: clean(markdown.replaceAll('http://', 'https://')),
+      articleMeta: mergedMeta,
+      markdown: parsed.markdown,
     }
 
     post.seo = buildBlogSeo(post)
@@ -110,7 +116,7 @@ async function syncBlogs() {
 
     fs.writeFileSync(
       path.join(contentDir, `${slug}.md`),
-      `---\ntitle: ${yamlString(title)}\ndescription: ${yamlString(description)}\ndate: ${date}\nupdatedAt: ${updatedAt}\nauthor: ${yamlString(author)}\nupdatedBy: ${yamlString(updatedBy)}\nslug: ${slug}\ntags: ${JSON.stringify(tags)}\ncover: ${cover || ''}\n---\n\n${post.markdown}`,
+      `---\ntitle: ${yamlString(title)}\ndescription: ${yamlString(description)}\ndate: ${date}\nupdatedAt: ${updatedAt}\nauthor: ${yamlString(author)}\nupdatedBy: ${yamlString(updatedBy)}\nslug: ${slug}\ntags: ${JSON.stringify(tags)}\ncategory: ${yamlString(mergedMeta.category)}\nreadMinutes: ${mergedMeta.readMinutes || 0}\ncover: ${cover || ''}\n---\n\n${post.markdown}`,
     )
 
     console.log(`Synced ${title}`)
@@ -357,14 +363,48 @@ function extensionFromUrl(url) {
 }
 
 function getTitle(page) {
-  const titleProp = Object.values(page.properties).find((property) => property.type === 'title')
-  return titleProp?.title?.[0]?.plain_text || ''
+  const titleProp = pickProperty(page, ['Title']) || Object.values(page.properties).find((property) => property.type === 'title')
+  return propertyValueToPlain(titleProp)
 }
 
-function getDescription(page, markdown) {
-  const property = pickProperty(page, ['Description', 'Summary', 'Excerpt', 'Meta Description'])
-  const fromProperty = richTextToPlain(property)
-  return fromProperty || extractDescription(markdown)
+function getSummary(page) {
+  return propertyValueToPlain(pickProperty(page, ['Summary', 'Description', 'Excerpt', 'Meta Description']))
+}
+
+function getCategory(page) {
+  return stripInlineFormatting(propertyValueToPlain(pickProperty(page, ['Category'])))
+}
+
+function getMinuteRead(page) {
+  const property = pickProperty(page, ['Minute read', 'Read time', 'Reading time', 'Minutes read'])
+  if (property?.type === 'number' && typeof property.number === 'number') return property.number
+  const parsed = Number(propertyValueToPlain(property))
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
+}
+
+function getArticleMeta(page, date) {
+  const year = getYearFromDate(date)
+  return {
+    category: getCategory(page),
+    year,
+    readMinutes: getMinuteRead(page),
+    summary: getSummary(page),
+  }
+}
+
+function mergeArticleMeta(fromNotion, fromMarkdown) {
+  return {
+    category: fromNotion.category || fromMarkdown.category || '',
+    year: fromNotion.year || fromMarkdown.year || '',
+    readMinutes: fromNotion.readMinutes || fromMarkdown.readMinutes || 0,
+    summary: fromNotion.summary || fromMarkdown.summary || '',
+  }
+}
+
+function getYearFromDate(date) {
+  if (!date) return ''
+  const year = new Date(date).getFullYear()
+  return Number.isFinite(year) ? String(year) : ''
 }
 
 function getDate(page) {
@@ -388,16 +428,25 @@ function getUpdatedBy(page) {
 }
 
 function getTags(page) {
-  const property = pickProperty(page, ['Tags', 'Tag', 'Category', 'Categories'])
+  const property = pickProperty(page, ['Tags', 'Tag'])
   if (property?.type === 'multi_select') return property.multi_select.map((tag) => tag.name)
   if (property?.type === 'select' && property.select?.name) return [property.select.name]
 
-  const text = richTextToPlain(property)
+  const text = propertyValueToPlain(property)
   if (!text) return []
+
+  if (text.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(text)
+      if (Array.isArray(parsed)) return parsed.map((tag) => String(tag).trim()).filter(Boolean)
+    } catch {
+      // fall through
+    }
+  }
 
   return text
     .split(/[,;|]/)
-    .map((tag) => tag.trim())
+    .map((tag) => tag.trim().replace(/^["']|["']$/g, ''))
     .filter(Boolean)
 }
 
@@ -419,9 +468,11 @@ function isHidden(page) {
   const property = pickProperty(page, ['Hide', 'Hidden'])
   if (property?.type === 'checkbox') return property.checkbox === true
   if (property?.type === 'select' && property.select?.name) {
-    return ['true', 'yes', 'hidden'].includes(property.select.name.toLowerCase())
+    return ['true', 'yes', 'hidden', '__yes__'].includes(property.select.name.toLowerCase())
   }
-  return false
+
+  const text = propertyValueToPlain(property).toLowerCase()
+  return text === 'true' || text === 'yes' || text === 'hidden' || text === '__yes__'
 }
 
 function getCoverUrl(page) {
@@ -437,9 +488,43 @@ function pickProperty(page, names) {
   return undefined
 }
 
+function propertyValueToPlain(property) {
+  if (!property?.type) return ''
+
+  switch (property.type) {
+    case 'title':
+      return property.title?.map((item) => item.plain_text).join('') || ''
+    case 'rich_text':
+      return property.rich_text?.map((item) => item.plain_text).join('') || ''
+    case 'number':
+      return property.number == null ? '' : String(property.number)
+    case 'select':
+      return property.select?.name || ''
+    case 'multi_select':
+      return property.multi_select?.map((item) => item.name).join(', ') || ''
+    case 'checkbox':
+      return property.checkbox ? '__YES__' : '__NO__'
+    case 'date':
+      return property.date?.start || ''
+    case 'url':
+      return property.url || ''
+    case 'formula':
+      return property.formula?.string || (property.formula?.number != null ? String(property.formula.number) : '')
+    default:
+      return ''
+  }
+}
+
 function richTextToPlain(property) {
-  if (property?.type !== 'rich_text') return ''
-  return property.rich_text.map((item) => item.plain_text).join('')
+  return property?.type === 'rich_text' ? propertyValueToPlain(property) : ''
+}
+
+function stripInlineFormatting(value = '') {
+  return String(value || '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/_([^_]+)_/g, '$1')
+    .trim()
 }
 
 function getSlug(title) {
@@ -453,10 +538,6 @@ function getSlug(title) {
 
 function localDate(date) {
   return new Date(date).toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' })
-}
-
-function clean(str) {
-  return str.replace(/’/g, "'").replace(/“/g, '"').replace(/”/g, '"')
 }
 
 function yamlString(value) {
@@ -488,114 +569,6 @@ function extractDescription(content) {
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-function isMarkdownTableSeparatorLine(line) {
-  const s = line.trim()
-  if (!s.startsWith('|') || !/-/.test(s)) return false
-  return /^[\s|\-:]+$/.test(s)
-}
-
-function isPipeTableRowLine(line) {
-  return line.trim().startsWith('|')
-}
-
-function fixNotionTableLabelTypos(md) {
-  return md.replace(/\b(Read|Write)\*\*:\*\*/gi, '**$1:**')
-}
-
-function fixMultilineNotionPipeTablesInner(md) {
-  const lines = md.split('\n')
-  const out = []
-  let i = 0
-
-  while (i < lines.length) {
-    const line = lines[i] || ''
-
-    if (!isPipeTableRowLine(line) || isMarkdownTableSeparatorLine(line)) {
-      out.push(line)
-      i++
-      continue
-    }
-
-    let merged = line
-    let j = i + 1
-
-    while (j < lines.length) {
-      const rawNext = lines[j] || ''
-      const nextTrim = rawNext.trim()
-
-      if (nextTrim === '') {
-        if (!merged.trimEnd().endsWith('|')) {
-          j++
-          continue
-        }
-        break
-      }
-
-      if (isMarkdownTableSeparatorLine(rawNext)) break
-
-      if (isPipeTableRowLine(rawNext)) {
-        if (merged.trimEnd().endsWith('|')) break
-        merged = `${merged.trimEnd()} - ${nextTrim}`
-        j++
-        continue
-      }
-
-      if (!merged.trimEnd().endsWith('|') || nextTrim.includes('|')) {
-        merged = `${merged.trimEnd()} - ${nextTrim}`
-        j++
-        continue
-      }
-
-      break
-    }
-
-    out.push(merged)
-    i = j
-  }
-
-  return out.join('\n')
-}
-
-function fixMultilineNotionPipeTables(md) {
-  const lines = md.split('\n')
-  const out = []
-  let outsideBuf = []
-  let insideBuf = []
-  let inFence = false
-
-  const flushOutside = () => {
-    if (!outsideBuf.length) return
-    let chunk = outsideBuf.join('\n')
-    chunk = fixNotionTableLabelTypos(chunk)
-    chunk = fixMultilineNotionPipeTablesInner(chunk)
-    out.push(chunk)
-    outsideBuf = []
-  }
-
-  for (const line of lines) {
-    if (line.trim().startsWith('```')) {
-      if (!inFence) {
-        flushOutside()
-        inFence = true
-        insideBuf = [line]
-      } else {
-        insideBuf.push(line)
-        out.push(insideBuf.join('\n'))
-        insideBuf = []
-        inFence = false
-      }
-      continue
-    }
-
-    if (inFence) insideBuf.push(line)
-    else outsideBuf.push(line)
-  }
-
-  flushOutside()
-  if (insideBuf.length) out.push(insideBuf.join('\n'))
-  return out.join('\n')
 }
 
 console.log(`Blog sync complete. Open /blog after running npm run dev.\nGenerated dates display like: ${localDate(new Date())}`)

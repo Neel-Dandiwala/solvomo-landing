@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import remarkBreaks from 'remark-breaks'
 import remarkGfm from 'remark-gfm'
 import { COLOUR_LOGO, WHITE_LOGO } from './assets.js'
 import blogs from './content/blogs.generated.json'
@@ -117,6 +118,9 @@ export function BlogIndex() {
                 <div className="p-6 sm:p-7">
                   <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-black/46">
                     <span>{formatDate(post.date)}</span>
+                    {post.articleMeta?.category ? (
+                      <span className="rounded-full border border-black/10 px-2.5 py-1">{post.articleMeta.category}</span>
+                    ) : null}
                     {post.tags?.map((tag) => (
                       <span key={tag} className="rounded-full border border-black/10 px-2.5 py-1">
                         {tag}
@@ -150,7 +154,7 @@ export function BlogPost() {
   const postPath = post ? `/blog/${post.slug}` : '/blog'
   const postDescription = seo?.metaDescription || post?.description || BLOG_INDEX_DESCRIPTION
   const postReadingTime = seo?.readingMinutes || 0
-  const articleMeta = seo?.articleMeta || {}
+  const articleMeta = post?.articleMeta || seo?.articleMeta || {}
   const markdownBody = post ? renderableBlogMarkdown(post.markdown, post.title, post.tags) : ''
 
   useSeo({
@@ -187,7 +191,7 @@ export function BlogPost() {
               url: absoluteUrl('/'),
             },
             keywords: seo.keywords?.join(', '),
-            articleSection: seo.keywords?.[0] || 'Marketing',
+            articleSection: articleMeta.category || post.tags?.[0] || 'Marketing',
             wordCount: seo.wordCount,
             timeRequired: `PT${postReadingTime}M`,
             inLanguage: 'en',
@@ -235,8 +239,8 @@ export function BlogPost() {
                 ))}
               </div>
             ) : null}
-            {articleMeta.summary ? (
-              <p className="mt-5 text-base leading-relaxed text-black/60">{articleMeta.summary}</p>
+            {articleMeta.summary || post.description ? (
+              <p className="mt-5 text-base leading-relaxed text-black/60">{articleMeta.summary || post.description}</p>
             ) : null}
           </div>
         </article>
@@ -250,7 +254,15 @@ export function BlogPost() {
         ) : null}
 
         <article className="blog-markdown mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:py-16">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdownBody}</ReactMarkdown>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkBreaks]}
+            components={{
+              img: ({ src, alt, ...props }) =>
+                src ? <img src={src} alt={alt || ''} loading="lazy" decoding="async" {...props} /> : null,
+            }}
+          >
+            {markdownBody}
+          </ReactMarkdown>
         </article>
       </main>
     </div>

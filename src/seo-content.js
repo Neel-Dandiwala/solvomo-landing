@@ -1,3 +1,5 @@
+import { prepareNotionMarkdownForDisplay } from './notion-markdown-tables.js'
+
 const STOP_WORDS = new Set([
   'about',
   'after',
@@ -109,15 +111,17 @@ export function parseBlogArticleMarkdown(markdown = '', title = '', tags = []) {
       continue
     }
 
+    if (isNotionChromeLine(trimmed)) {
+      i++
+      continue
+    }
+
     if (isHeading(line) && shouldDropLeadingHeading(line, title)) {
       i++
       continue
     }
 
-    if (trimmed === '---' || trimmed.startsWith('---')) {
-      const split = splitMetaPrefix(trimmed)
-      if (split.meta) Object.assign(meta, split.meta)
-      if (split.remainder) body.push(split.remainder)
+    if (isHorizontalRule(trimmed)) {
       i++
       continue
     }
@@ -131,12 +135,12 @@ export function parseBlogArticleMarkdown(markdown = '', title = '', tags = []) {
 
     const plainLine = stripInlineMarkdown(trimmed)
     if (/^summary\s*:/i.test(plainLine)) {
-      meta.summary = plainLine.replace(/^summary\s*:\s*/i, '').trim()
+      meta.summary = plainLine.replace(/^summary\s*:/i, '').trim()
       i++
       continue
     }
 
-    if (tagSet.has(trimmed.toLowerCase()) && trimmed.length < 50) {
+    if (tagSet.has(plainLine.toLowerCase()) && plainLine.length < 50) {
       i++
       continue
     }
@@ -155,8 +159,10 @@ export function parseBlogArticleMarkdown(markdown = '', title = '', tags = []) {
       body.push(lines[i])
       continue
     }
+    if (isNotionChromeLine(trimmed)) continue
+    if (isFooterTagsLine(trimmed)) continue
     if (isBrokenImageLine(trimmed)) continue
-    if (meta.summary && isSimilarText(trimmed, meta.summary)) continue
+    if (meta.summary && isSimilarText(stripInlineMarkdown(trimmed), meta.summary)) continue
     body.push(lines[i])
   }
 
@@ -175,7 +181,8 @@ export function parseBlogArticleMarkdown(markdown = '', title = '', tags = []) {
 }
 
 export function renderableBlogMarkdown(markdown = '', title = '', tags = []) {
-  return parseBlogArticleMarkdown(markdown, title, tags).markdown
+  const body = parseBlogArticleMarkdown(markdown, title, tags).markdown
+  return prepareNotionMarkdownForDisplay(body)
 }
 
 export function metaDescription(markdown = '', fallback = '') {
@@ -218,12 +225,21 @@ export function extractKeywords({ title = '', markdown = '', tags = [] } = {}) {
 export function buildBlogSeo(post) {
   const parsed = parseBlogArticleMarkdown(post?.markdown || '', post?.title || '', post?.tags || [])
   const markdown = parsed.markdown
+  const articleMeta = {
+    category: '',
+    year: '',
+    readMinutes: 0,
+    summary: '',
+    ...parsed.meta,
+    ...(post?.articleMeta || {}),
+  }
   const keywords = extractKeywords({ title: post?.title, markdown, tags: post?.tags || [] })
   const image = post?.cover || extractImage(markdown)
-  const description = metaDescription(post?.markdown || '', post?.description)
+  const description =
+    articleMeta.summary || post?.description || metaDescription(markdown, articleMeta.summary)
   const headings = extractHeadings(markdown)
   const text = stripMarkdown(markdown)
-  const readMinutes = parsed.meta.readMinutes || 0
+  const readMinutes = articleMeta.readMinutes || readingTime(markdown)
 
   return {
     seoTitle: post?.title || '',
@@ -231,10 +247,10 @@ export function buildBlogSeo(post) {
     keywords,
     headings,
     image,
-    excerpt: truncateAtWord(parsed.meta.summary || text, 320),
+    excerpt: truncateAtWord(articleMeta.summary || text, 320),
     wordCount: text.split(/\s+/).filter(Boolean).length,
     readingMinutes: readMinutes,
-    articleMeta: parsed.meta,
+    articleMeta,
   }
 }
 
@@ -260,8 +276,28 @@ function truncateAtWord(value, limit) {
 }
 
 function parseMetaLine(line) {
-  const split = splitMetaPrefix(line)
-  return split.meta
+  return splitMetaPrefix(line).meta
+}
+
+function normalizeNotionLine(line = '') {
+  return String(line || '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/\\\|/g, '|')
+    .trim()
+}
+
+function isNotionChromeLine(line = '') {
+  const value = normalizeNotionLine(line)
+  return !value || /^<empty-block\s*\/?>$/i.test(value)
+}
+
+function isHorizontalRule(line = '') {
+  return /^-{3,}$/.test(normalizeNotionLine(line))
+}
+
+function isFooterTagsLine(line = '') {
+  const plain = stripInlineMarkdown(normalizeNotionLine(line))
+  return /^(?:\*|_)?tags\s*:/i.test(plain)
 }
 
 function stripInlineMarkdown(line = '') {
@@ -274,24 +310,43 @@ function stripInlineMarkdown(line = '') {
 }
 
 function splitMetaPrefix(line) {
-  const cleaned = stripInlineMarkdown(
-    String(line || '')
-      .replace(/^---+\s*/, '')
-      .trim(),
-  )
+  const cleaned = stripInlineMarkdown(normalizeNotionLine(line).replace(/^---+\s*/, ''))
 
-  // Notion blog chrome: [category] · year | N min read
-  const match = cleaned.match(/^(.+?)\s*·\s*((?:19|20)\d{2})\s*\|\s*(\d+)\s*min\s*read\s*$/i)
-  if (!match) return { meta: null, remainder: cleaned }
-
-  return {
-    meta: {
-      category: match[1].trim(),
-      year: match[2],
-      readMinutes: Number(match[3]),
-    },
-    remainder: '',
+  // Notion blog chrome: Category · year | N min read
+  const withYear = cleaned.match(/^(.+?)\s*·\s*((?:19|20)\d{2})\s*\|\s*(\d+)\s*min(?:ute)?s?\s*read\s*$/i)
+  if (withYear) {
+    return {
+      meta: {
+        category: withYear[1].trim(),
+        year: withYear[2],
+        readMinutes: Number(withYear[3]),
+      },
+      remainder: '',
+    }
   }
+
+  // Category · year (read time on next line or omitted)
+  const categoryYear = cleaned.match(/^(.+?)\s*·\s*((?:19|20)\d{2})\s*$/i)
+  if (categoryYear) {
+    return {
+      meta: {
+        category: categoryYear[1].trim(),
+        year: categoryYear[2],
+      },
+      remainder: '',
+    }
+  }
+
+  // N min read only
+  const readOnly = cleaned.match(/^(\d+)\s*min(?:ute)?s?\s*read\s*$/i)
+  if (readOnly) {
+    return {
+      meta: { readMinutes: Number(readOnly[1]) },
+      remainder: '',
+    }
+  }
+
+  return { meta: null, remainder: cleaned }
 }
 
 function isHeading(line = '') {
