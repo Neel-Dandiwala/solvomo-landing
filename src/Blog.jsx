@@ -2,7 +2,8 @@ import ReactMarkdown from 'react-markdown'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import remarkBreaks from 'remark-breaks'
 import remarkGfm from 'remark-gfm'
-import { COLOUR_LOGO, WHITE_LOGO } from './assets.js'
+import { COLOUR_LOGO } from './assets.js'
+import Navbar from './Navbar.jsx'
 import blogs from './content/blogs.generated.json'
 import { HiddenCrawlerMetadata, absoluteUrl, buildBlogSeo, renderableBlogMarkdown, useSeo, websiteSchema } from './seo.js'
 
@@ -10,26 +11,7 @@ const BLOG_INDEX_TITLE = 'Solvomo Blog - Growth operations and decision intellig
 const BLOG_INDEX_DESCRIPTION = 'Operating notes from Solvomo on growth operations, signal quality, AI advertising, and decision intelligence for performance teams.'
 
 function Header() {
-  return (
-    <header className="border-b border-black/10 bg-white/92 backdrop-blur-md">
-      <div className="mx-auto flex h-[4.5rem] max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="logo-mark h-8 w-10 shrink-0">
-            <img src={WHITE_LOGO} alt="Solvomo logo" className="h-full w-full" />
-          </div>
-          <span className="brand-wordmark text-[1.05rem]">Solvomo</span>
-        </Link>
-        <nav className="flex items-center gap-5 text-sm font-medium">
-          <Link to="/blog" className="nav-link">
-            Blog
-          </Link>
-          <Link to="/" className="nav-link">
-            Home
-          </Link>
-        </nav>
-      </div>
-    </header>
-  )
+  return <Navbar />
 }
 
 function formatDate(date) {

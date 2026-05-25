@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { COLOUR_LOGO, WHITE_LOGO } from './assets.js'
+import Navbar from './Navbar.jsx'
 import { HiddenCrawlerMetadata, absoluteUrl, organizationSchema, useSeo, websiteSchema } from './seo.js'
 
 const CALENDLY_BOOK_URL = 'https://calendly.com/riya-aggarwal29/30min'
@@ -15,13 +15,6 @@ const HOME_TOPICS = [
   'creative intelligence',
   'signal quality',
   'budget allocation',
-]
-
-const nav = [
-  { label: 'Platform', href: '#platform' },
-  { label: 'Operating model', href: '#operating-model' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Contact', href: '#contact' },
 ]
 
 const primaryButtonClass =
@@ -74,8 +67,6 @@ function LogoMark({ src, alt, className = '', imageClassName = '' }) {
 }
 
 export default function SolvomoLanding() {
-  const [scrolled, setScrolled] = useState(false)
-
   useSeo({
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
@@ -105,46 +96,9 @@ export default function SolvomoLanding() {
     ],
   })
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
   return (
     <div className="page-haze min-h-svh bg-white text-black antialiased">
-      <header
-        className={`sticky top-0 z-50 border-b transition-colors duration-200 ${
-          scrolled ? 'border-black/10 bg-white/92 backdrop-blur-md' : 'border-transparent bg-white/88 backdrop-blur-md'
-        }`}
-      >
-        <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
-          <a href="#" className="flex items-center gap-3">
-            <LogoMark
-              src={WHITE_LOGO}
-              alt="Solvomo logo"
-              className="logo-mark h-8 w-10 shrink-0"
-              imageClassName="h-full w-full"
-            />
-            <span className="brand-wordmark text-[1.05rem]">Solvomo</span>
-          </a>
-
-          <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
-            {nav.map((item) => (
-              <a key={item.href} href={item.href} className="nav-link text-sm font-medium">
-                {item.label}
-              </a>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <a href={CALENDLY_BOOK_URL} target="_blank" rel="noopener noreferrer" className={`${primaryButtonClass} px-4 py-2.5`}>
-              Book a meeting with us
-            </a>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <HiddenCrawlerMetadata title={HOME_TITLE} description={HOME_DESCRIPTION} canonical={absoluteUrl('/')} tags={HOME_TOPICS}>
         <dt>Primary use cases</dt>
@@ -540,9 +494,9 @@ export default function SolvomoLanding() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-10 text-sm sm:grid-cols-4">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Product</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Products</p>
                 <div className="mt-4 space-y-2.5">
                   <a href="#platform" className="footer-link block">
                     Platform
@@ -550,14 +504,33 @@ export default function SolvomoLanding() {
                   <a href="#operating-model" className="footer-link block">
                     Operating model
                   </a>
+                </div>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Pricing</p>
+                <div className="mt-4 space-y-2.5">
+                  <a href="/pricing" className="footer-link block">
+                    Pricing
+                  </a>
+                </div>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Resources</p>
+                <div className="mt-4 space-y-2.5">
                   <a href="/blog" className="footer-link block">
                     Blog
                   </a>
                 </div>
               </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Company</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Solvomo</p>
                 <div className="mt-4 space-y-2.5">
+                  <a href="/about" className="footer-link block">
+                    About Us
+                  </a>
+                  <a href="/#contact" className="footer-link block">
+                    Contact Us
+                  </a>
                   <a href={CALENDLY_BOOK_URL} target="_blank" rel="noopener noreferrer" className="footer-link block">
                     Book a meeting with us
                   </a>
@@ -569,16 +542,8 @@ export default function SolvomoLanding() {
                   >
                     LinkedIn
                   </a>
-                </div>
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Legal</p>
-                <div className="mt-4 space-y-2.5">
                   <a href="/privacy.html" className="footer-link block">
                     Privacy
-                  </a>
-                  <a href="#" className="footer-link block">
-                    Terms
                   </a>
                 </div>
               </div>
