@@ -12,6 +12,8 @@
 ## Primary URLs
 
 - [Home](https://solvomo.com/): Solvomo product overview for marketing decision intelligence.
+- [About](https://solvomo.com/about): Why Solvomo exists, what we believe, and how pre-spend simulation works.
+- [Pricing](https://solvomo.com/pricing): Solvomo pricing tiers and what is included in each plan.
 - [Blog](https://solvomo.com/blog): Operating notes on growth operations, AI advertising, signal quality, and decision intelligence.
 - [Privacy Policy](https://solvomo.com/privacy): Privacy policy for website visitors and product inquiries.
 

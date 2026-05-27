@@ -11,11 +11,5 @@ services:
         value: 47a9fea1de7346ce94acf33a2cc02de4
     routes:
       - type: rewrite
-        source: /blog/*
-        destination: /index.html
-      - type: rewrite
-        source: /privacy
-        destination: /index.html
-      - type: rewrite
-        source: /
+        source: /*
         destination: /index.html

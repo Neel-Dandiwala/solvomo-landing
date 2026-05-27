@@ -12,6 +12,8 @@ const today = new Date().toISOString().slice(0, 10)
 
 const routes = [
   { path: '/', changefreq: 'weekly', priority: '1.0', lastmod: today },
+  { path: '/about', changefreq: 'monthly', priority: '0.8', lastmod: today },
+  { path: '/pricing', changefreq: 'monthly', priority: '0.8', lastmod: today },
   { path: '/blog', changefreq: 'weekly', priority: '0.8', lastmod: latestBlogDate(blogs) || today },
   { path: '/privacy', changefreq: 'yearly', priority: '0.3', lastmod: today },
   ...blogs.map((post) => ({
@@ -86,6 +88,8 @@ function llmsTxt(posts) {
     '## Primary URLs',
     '',
     '- [Home](' + siteUrl + '/): Solvomo product overview for marketing decision intelligence.',
+    '- [About](' + siteUrl + '/about): Why Solvomo exists, what we believe, and how pre-spend simulation works.',
+    '- [Pricing](' + siteUrl + '/pricing): Solvomo pricing tiers and what is included in each plan.',
     '- [Blog](' + siteUrl + '/blog): Operating notes on growth operations, AI advertising, signal quality, and decision intelligence.',
     '- [Privacy Policy](' + siteUrl + '/privacy): Privacy policy for website visitors and product inquiries.',
     '',
