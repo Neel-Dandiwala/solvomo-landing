@@ -8,7 +8,7 @@
     "sync:blogs": "node scripts/sync-notion-blogs.mjs",
     "generate:seo": "node scripts/generate-seo-files.mjs",
     "render-build": "npm run sync:blogs && npm run build",
-    "build": "npm run generate:seo && vite build && node scripts/verify-blog-images.mjs",
+    "build": "npm run generate:seo && vite build && node scripts/generate-route-fallbacks.mjs && node scripts/verify-blog-images.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

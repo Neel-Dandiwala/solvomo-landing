@@ -38,6 +38,18 @@ NOTION_BLOG_DATABASE_ID=47a9fea1de7346ce94acf33a2cc02de4
 Add rewrites in the service's **Redirects/Rewrites** tab. Do **not** use `/*` — that catch-all can prevent `/images/blogs/*` from being served (images 404 in production).
 
 ```bash
+Source: /about
+Destination: /index.html
+Action: Rewrite
+
+Source: /pricing
+Destination: /index.html
+Action: Rewrite
+
+Source: /blog
+Destination: /index.html
+Action: Rewrite
+
 Source: /blog/*
 Destination: /index.html
 Action: Rewrite
