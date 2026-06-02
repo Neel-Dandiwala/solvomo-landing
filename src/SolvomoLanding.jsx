@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { COLOUR_LOGO, WHITE_LOGO } from './assets.js'
 import Navbar from './Navbar.jsx'
 import { HiddenCrawlerMetadata, absoluteUrl, organizationSchema, useSeo, websiteSchema } from './seo.js'
@@ -95,6 +96,16 @@ export default function SolvomoLanding() {
       },
     ],
   })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const id = window.location.hash.replace('#', '')
+    if (!id) return
+    const target = document.getElementById(id)
+    if (target) {
+      requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth' }))
+    }
+  }, [])
 
   return (
     <div className="page-haze min-h-svh bg-white text-black antialiased">
@@ -255,6 +266,139 @@ export default function SolvomoLanding() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="about" className="border-b border-black/10 bg-white">
+          <div className="mx-auto flex w-full max-w-4xl flex-col px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+            <div className="mx-auto w-full max-w-2xl">
+              <div style={{ marginBottom: '1.5rem' }}>
+                <span className="eyebrow rounded-full" style={{ display: 'inline-flex' }}>
+                  <span className="eyebrow-dot" />
+                  WHO WE ARE
+                </span>
+              </div>
+              <h2 className="text-[clamp(2.4rem,5vw,3rem)] font-semibold leading-[0.95] tracking-[-0.05em]">
+                Solvomo is built for marketers who want visibility, certainty, and clarity.
+              </h2>
+              <p className="mt-6 text-lg leading-relaxed text-black/60 sm:text-xl">
+                Simulate your ad campaigns using our platform mix before you spend. Know what&apos;s working, what&apos;s not, and how much
+                you&apos;ll make across every platform.
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t border-black/10">
+            <div className="mx-auto flex w-full max-w-4xl flex-col px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+              <div className="mx-auto w-full max-w-2xl">
+                <h3 className="sv-section-heading">The starting point</h3>
+                <div className="surface-frame mt-6 rounded-[var(--sv-radius-card)] border border-black/10 p-6">
+                  <p className="text-base leading-relaxed text-black/70">
+                    In 2024, marketers spent <strong className="text-black/80">$790 billion</strong> on digital ads. Yet{' '}
+                    <strong className="text-black/80">87% experienced performance issues</strong>, and{' '}
+                    <strong className="text-black/80">45% pulled campaigns mid-flight</strong> after money was already spent. The result:{' '}
+                    <strong className="text-black/80">$160 billion in annual waste</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-black/10 bg-black/[0.02]">
+            <div className="mx-auto flex w-full max-w-4xl flex-col px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+              <div className="mx-auto w-full max-w-2xl">
+                <h3 className="sv-section-heading">Why this happens</h3>
+
+                <div className="mt-10">
+                  <h4 className="sv-card-title">1. Platform fragmentation</h4>
+                  <p className="sv-body-copy mt-3">
+                    Meta reports ROI one way. Google reports it differently. LinkedIn has yet another metric. Teams can&apos;t compare across
+                    platforms or trust any single number.
+                  </p>
+                </div>
+
+                <div className="mt-8">
+                  <h4 className="sv-card-title">2. Invisible creative impact</h4>
+                  <p className="sv-body-copy mt-3">
+                    Creative drives <strong className="text-black/80">49-70% of ad ROI</strong>. Yet{' '}
+                    <strong className="text-black/80">33.2% of marketers</strong> have no way to measure creative quality before launch.
+                    They&apos;re flying blind.
+                  </p>
+                </div>
+
+                <div className="mt-8">
+                  <h4 className="sv-card-title">3. No pre-spend prediction</h4>
+                  <p className="sv-body-copy mt-3">
+                    Every tool measures ROI after campaigns run. None simulate performance before you launch. So CFOs reject budget requests,
+                    and campaigns launch hoping for the best.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-black/10">
+            <div className="mx-auto flex w-full max-w-4xl flex-col px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+              <div className="mx-auto w-full max-w-2xl">
+                <h3 className="sv-section-heading">Our approach</h3>
+                <p className="sv-body-copy mt-6">
+                  Solvomo simulates your ad performance across platforms. Input your budget, audience, creative, and platform mix. We combine
+                  platform benchmarks, audience quality analysis, and creative scoring to predict what will actually happen before you commit
+                  a dollar.
+                </p>
+
+                <div className="surface-brand mt-10 rounded-[var(--sv-radius-card)] border border-transparent bg-gradient-to-br from-[rgba(242,213,138,0.08)] to-[rgba(216,143,141,0.08)] p-8">
+                  <h4 className="sv-card-title">How it works in practice</h4>
+                  <div className="mt-6 space-y-4">
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 text-lg leading-none text-black/60">Monitor</span>
+                      <span className="text-base text-black/70">Track live performance as campaigns run across platform</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 text-lg leading-none text-black/60">Simulate</span>
+                      <span className="text-base text-black/70">Run pre-launch predictions using our platform mix before you spend</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 text-lg leading-none text-black/60">Evolve</span>
+                      <span className="text-base text-black/70">Compare variations and optimize by ROI impact</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="sv-body-copy mt-8">
+                  The result: marketers move from guessing to knowing. From hoping campaigns work to predicting they will. From mid-flight
+                  panic to confident optimization.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-black/10 bg-black/[0.02]">
+            <div className="mx-auto flex w-full max-w-4xl flex-col px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+              <div className="mx-auto w-full max-w-2xl">
+                <h3 className="sv-section-heading">Why Solvomo</h3>
+                <div className="mt-8 space-y-4">
+                  <div className="border-l-3 border-blue-500/40 pl-6">
+                    <p className="sv-body-copy mt-0">
+                      <strong className="text-black/80">Simulate before you launch.</strong> No historical data required. Works on day one
+                      with real platform benchmarks.
+                    </p>
+                  </div>
+                  <div className="border-l-3 border-blue-500/40 pl-6">
+                    <p className="sv-body-copy mt-0">
+                      <strong className="text-black/80">See what&apos;s actually working.</strong> Cross-platform predictions (Meta, Google,
+                      TikTok, LinkedIn) in one number.
+                    </p>
+                  </div>
+                  <div className="border-l-3 border-blue-500/40 pl-6">
+                    <p className="sv-body-copy mt-0">
+                      <strong className="text-black/80">Honest about uncertainty.</strong> We tell you the confidence level, not just the
+                      prediction.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -525,7 +669,7 @@ export default function SolvomoLanding() {
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/42">Solvomo</p>
                 <div className="mt-4 space-y-2.5">
-                  <a href="/about" className="footer-link block">
+                  <a href="/#about" className="footer-link block">
                     About Us
                   </a>
                   <a href="/#contact" className="footer-link block">

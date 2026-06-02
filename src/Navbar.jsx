@@ -33,7 +33,7 @@ const navGroups = [
     id: 'solvomo',
     label: 'Solvomo',
     items: [
-      { label: 'About Us', description: 'Why Solvomo exists and what we believe.', to: '/about' },
+      { label: 'About Us', description: 'Why Solvomo exists and what we believe.', to: '/#about' },
       { label: 'Contact Us', description: 'Get in touch with our team.', to: '/#contact' },
     ],
   },
