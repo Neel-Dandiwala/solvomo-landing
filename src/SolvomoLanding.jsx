@@ -126,14 +126,14 @@ export default function SolvomoLanding() {
                   Decision intelligence for growth operators
                 </div>
 
-                <h1 className="mt-8 max-w-[12ch] text-[clamp(3.1rem,7vw,5.8rem)] font-semibold leading-[0.92] tracking-[-0.05em] text-black">
-                  Make growth decisions from a
-                  <span className="headline-brand block">single operating system.</span>
+                <h1 className="mt-8 max-w-[18ch] text-[clamp(2.6rem,5.5vw,4.6rem)] font-semibold leading-[0.95] tracking-[-0.05em] text-black">
+                  Solvomo is built for marketers who want
+                  <span className="headline-brand block">visibility, certainty, and clarity.</span>
                 </h1>
 
                 <p className="mt-6 max-w-xl text-lg leading-relaxed text-black/62">
-                  Solvomo unifies channel, creative, and signal intelligence into one system built for teams managing real budget, real
-                  pipeline, and real accountability.
+                  Simulate your ad campaigns using our platform mix before you spend. Know what&apos;s working, what&apos;s not, and how much
+                  you&apos;ll make across every platform.
                 </p>
 
                 <div className="mt-8">
@@ -274,7 +274,7 @@ export default function SolvomoLanding() {
         </section>
 
         <section id="about" className="border-b border-black/10 bg-white">
-          <div className="mx-auto flex w-full max-w-4xl flex-col px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div className="mx-auto flex w-full max-w-4xl flex-col px-4 pt-16 sm:px-6 lg:px-8 lg:pt-20">
             <div className="mx-auto w-full max-w-2xl">
               <div style={{ marginBottom: '1.5rem' }}>
                 <span className="eyebrow rounded-full" style={{ display: 'inline-flex' }}>
@@ -283,16 +283,12 @@ export default function SolvomoLanding() {
                 </span>
               </div>
               <h2 className="text-[clamp(2.4rem,5vw,3rem)] font-semibold leading-[0.95] tracking-[-0.05em]">
-                Solvomo is built for marketers who want visibility, certainty, and clarity.
+                Why Solvomo exists
               </h2>
-              <p className="mt-6 text-lg leading-relaxed text-black/60 sm:text-xl">
-                Simulate your ad campaigns using our platform mix before you spend. Know what&apos;s working, what&apos;s not, and how much
-                you&apos;ll make across every platform.
-              </p>
             </div>
           </div>
 
-          <div className="border-t border-black/10">
+          <div>
             <div className="mx-auto flex w-full max-w-4xl flex-col px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
               <div className="mx-auto w-full max-w-2xl">
                 <h3 className="sv-section-heading">The starting point</h3>
